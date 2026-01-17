@@ -2,8 +2,17 @@
   "name": "matrix-overlay",
   "displayName": "Matrix Overlay",
   "description": "A Matrix-style overlay animation for VS Code editor area",
-  "version": "0.0.1",
-  "publisher": "local-dev",
+  "version": "0.1.0",
+  "publisher": "rich1e",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/你的仓库"
+  },
+  "bugs": {
+    "url": "https://github.com/你的仓库/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -16,8 +25,39 @@
     "commands": [
       {
         "command": "matrixOverlay.start",
-        "title": "Matrix Overlay: Start"
+        "title": "Matrix Overlay: Toggle"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Matrix Overlay",
+      "properties": {
+        "matrixOverlay.opacity": {
+          "type": "number",
+          "default": 0.05,
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "description": "Trail fade opacity (lower = longer trails)"
+        },
+        "matrixOverlay.fps": {
+          "type": "number",
+          "default": 30,
+          "minimum": 10,
+          "maximum": 60,
+          "description": "Animation frame rate"
+        },
+        "matrixOverlay.fontSize": {
+          "type": "number",
+          "default": 16,
+          "minimum": 10,
+          "maximum": 32,
+          "description": "Font size of characters"
+        },
+        "matrixOverlay.immersiveFullScreen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enter VS Code fullscreen when immersive mode starts"
+        }
+      }
+    }
   }
 }

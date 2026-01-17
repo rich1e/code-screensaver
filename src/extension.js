@@ -1,131 +1,182 @@
-const vscode = require('vscode')
-
-/**
- * @param {vscode.ExtensionContext} context
+/*
+ * @Author       : yuqigong@outlook.com
+ * @Date         : 2026-01-15 19:00:13
+ * @LastEditors  : yuqigong@outlook.com
+ * @LastEditTime : 2026-01-17 15:21:03
+ * @FilePath     : /vscode-matrix-overlay/src/extension.js
+ * @Description  : 
  */
+const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
+
+let panel = null;
+let statusBarItem = null;
+
+let immersiveState = {
+  sidebarToggled: false,
+  statusBarToggled: false,
+  fullScreenToggled: false
+};
+
 function activate(context) {
-  const disposable = vscode.commands.registerCommand(
-    'matrixOverlay.start',
-    () => {
-      const panel = vscode.window.createWebviewPanel(
-        'matrixOverlay',
-        'Matrix Overlay',
+  console.log("Matrix Overlay activated");
+
+  const startCommand = vscode.commands.registerCommand(
+    "matrixOverlay.start",
+    async () => {
+      if (panel) {
+        panel.reveal();
+        return;
+      }
+
+      await enterImmersiveMode();
+
+      panel = vscode.window.createWebviewPanel(
+        "matrixOverlay",
+        "Matrix Overlay",
         vscode.ViewColumn.Active,
         {
           enableScripts: true,
-          retainContextWhenHidden: true,
+          retainContextWhenHidden: true
         }
-      )
+      );
 
-      panel.webview.html = getHtml()
+      panel.onDidDispose(async () => {
+        panel = null;
+        updateStatusBar(false);
+        await exitImmersiveMode();
+      });
 
-      // ESC 关闭（WebView -> Extension）
+      panel.webview.html = getWebviewHtml(context, panel.webview);
+
+      panel.webview.postMessage({
+        type: "config",
+        payload: getConfig()
+      });
+
       panel.webview.onDidReceiveMessage((msg) => {
-        if (msg.type === 'close') {
-          panel.dispose()
+        if (msg.type === "close") {
+          panel.dispose();
         }
-      })
-    }
-  )
+      });
 
-  context.subscriptions.push(disposable)
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("matrixOverlay") && panel) {
+          panel.webview.postMessage({
+            type: "config",
+            payload: getConfig()
+          });
+        }
+      });
+
+      updateStatusBar(true);
+    }
+  );
+
+  // 状态栏
+  statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBarItem.command = "matrixOverlay.start";
+  statusBarItem.text = "$(symbol-misc) Matrix";
+  statusBarItem.tooltip = "Toggle Matrix Overlay";
+  statusBarItem.show();
+
+  context.subscriptions.push(startCommand, statusBarItem);
 }
 
-function deactivate() {}
+function deactivate() {
+  if (panel) panel.dispose();
+}
 
 module.exports = {
   activate,
-  deactivate,
+  deactivate
+};
+
+function updateStatusBar(active) {
+  statusBarItem.text = active
+    ? "$(debug-stop) Matrix"
+    : "$(symbol-misc) Matrix";
 }
 
-function getHtml() {
-  return /* html */ `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Matrix Overlay</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-  }
-  canvas {
-    display: block;
-  }
-  .hint {
-    position: fixed;
-    bottom: 12px;
-    right: 16px;
-    color: rgba(0,255,0,0.6);
-    font-family: monospace;
-    font-size: 12px;
-  }
-</style>
-</head>
-<body>
-<canvas id="canvas"></canvas>
-<div class="hint">Press ESC to exit</div>
+function getWebviewHtml(context, webview) {
+  const htmlPath = path.join(
+    context.extensionPath,
+    "src/webview/index.html"
+  );
+  let html = fs.readFileSync(htmlPath, "utf8");
 
-<script>
-  const vscode = acquireVsCodeApi();
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  const scriptUri = webview.asWebviewUri(
+    vscode.Uri.file(
+      path.join(context.extensionPath, "src/webview/matrix.js")
+    )
+  );
 
-  const chars = "アイウエオカキクケコサシスセソ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fontSize = 16;
-  let columns;
-  let drops;
+  html = html.replace("{{SCRIPT_URI}}", scriptUri.toString());
+  html = html.replace(/{{CSP_SOURCE}}/g, webview.cspSource);
 
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
-  }
+  return html;
+}
 
-  function draw() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+function getConfig() {
+  const config = vscode.workspace.getConfiguration("matrixOverlay");
+  return {
+    opacity: config.get("opacity", 0.05),
+    fps: config.get("fps", 30),
+    fontSize: config.get("fontSize", 16)
+  };
+}
 
-    ctx.fillStyle = "#0F0";
-    ctx.font = fontSize + "px monospace";
+async function enterImmersiveMode() {
+  immersiveState = {
+    sidebarToggled: false,
+    statusBarToggled: false,
+    fullScreenToggled: false
+  };
 
-    for (let i = 0; i < drops.length; i++) {
-      const text = chars[Math.floor(Math.random() * chars.length)];
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+  // Sidebar：始终尝试隐藏，但记录“我是否动过”
+  await vscode.commands.executeCommand(
+    "workbench.action.toggleSidebarVisibility"
+  );
+  immersiveState.sidebarToggled = true;
 
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i]++;
+  // Status Bar
+  await vscode.commands.executeCommand(
+    "workbench.action.closeSidebar"
+  );
+  immersiveState.statusBarToggled = true;
+
+  // Fullscreen（可配置）
+  const config = vscode.workspace.getConfiguration("matrixOverlay");
+  if (config.get("immersiveFullScreen", false)) {
+    if (!vscode.window.state.fullScreen) {
+      await vscode.commands.executeCommand(
+        "workbench.action.toggleFullScreen"
+      );
+      immersiveState.fullScreenToggled = true;
     }
   }
+}
 
-  resize();
-  window.addEventListener("resize", resize);
-
-  let running = true;
-  function loop() {
-    if (!running) return;
-    draw();
-    requestAnimationFrame(loop);
+async function exitImmersiveMode() {
+  if (immersiveState.sidebarToggled) {
+    await vscode.commands.executeCommand(
+      "workbench.action.openSidebar"
+    );
   }
-  loop();
 
-  // ESC 退出
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      running = false;
-      vscode.postMessage({ type: "close" });
-    }
-  });
-</script>
-</body>
-</html>
-`
+  if (immersiveState.statusBarToggled) {
+    await vscode.commands.executeCommand(
+      "workbench.action.toggleStatusbarVisibility"
+    );
+  }
+
+  if (immersiveState.fullScreenToggled) {
+    await vscode.commands.executeCommand(
+      "workbench.action.toggleFullScreen"
+    );
+  }
 }

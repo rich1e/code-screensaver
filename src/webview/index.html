@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta
+  http-equiv="Content-Security-Policy"
+  content="
+    default-src 'none';
+    script-src {{CSP_SOURCE}};
+    style-src 'unsafe-inline';
+  "
+/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Matrix Overlay</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
+  canvas {
+    display: block;
+  }
+  .hint {
+    position: fixed;
+    bottom: 10px;
+    right: 14px;
+    color: rgba(0,255,0,0.6);
+    font-family: monospace;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="hint">ESC to exit</div>
+
+  <script src="{{SCRIPT_URI}}"></script>
+</body>
+</html>
