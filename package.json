@@ -1,0 +1,23 @@
+{
+  "name": "matrix-overlay",
+  "displayName": "Matrix Overlay",
+  "description": "A Matrix-style overlay animation for VS Code editor area",
+  "version": "0.0.1",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:matrixOverlay.start"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "matrixOverlay.start",
+        "title": "Matrix Overlay: Start"
+      }
+    ]
+  }
+}
