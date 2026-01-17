@@ -1,17 +1,17 @@
 {
-  "name": "matrix-overlay",
-  "displayName": "Matrix Overlay",
-  "description": "A Matrix-style overlay animation for VS Code editor area",
+  "name": "code-screensaver",
+  "displayName": "Code Screensaver",
+  "description": "When you leave your desk, it shows a cool Matrix-style animation to hide your code from prying eyes.",
   "version": "0.1.0",
   "publisher": "rich1e",
   "license": "MIT",
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/你的仓库"
+    "url": "https://github.com/rich1e/code-screensaver.git"
   },
   "bugs": {
-    "url": "https://github.com/你的仓库/issues"
+    "url": "https://github.com/rich1e/code-screensaver/issues"
   },
   "engines": {
     "vscode": "^1.85.0"

@@ -1,6 +1,6 @@
-# Matrix Overlay
+# Code Screensaver
 
-A Matrix-style animated overlay for the VS Code editor area.
+When you leave your desk, it shows a cool Matrix-style animation to hide your code from prying eyes.
 
 ## Features
 
@@ -14,6 +14,14 @@ A Matrix-style animated overlay for the VS Code editor area.
 1. Open Command Palette
 2. Run `Matrix Overlay: Start`
 3. Press `ESC` to exit
+
+## Config
+
+```json
+"matrixOverlay.opacity": 0.1, // opacity
+"matrixOverlay.fps": 20,      // fps
+"matrixOverlay.fontSize": 24  // font size
+```
 
 ## Notes
 

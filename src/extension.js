@@ -2,7 +2,7 @@
  * @Author       : yuqigong@outlook.com
  * @Date         : 2026-01-15 19:00:13
  * @LastEditors  : yuqigong@outlook.com
- * @LastEditTime : 2026-01-17 15:21:03
+ * @LastEditTime : 2026-01-17 15:34:47
  * @FilePath     : /vscode-matrix-overlay/src/extension.js
  * @Description  : 
  */
@@ -137,7 +137,7 @@ async function enterImmersiveMode() {
     fullScreenToggled: false
   };
 
-  // Sidebar：始终尝试隐藏，但记录“我是否动过”
+  // Sidebar：始终隐藏，记录“我是否动过”
   await vscode.commands.executeCommand(
     "workbench.action.toggleSidebarVisibility"
   );
